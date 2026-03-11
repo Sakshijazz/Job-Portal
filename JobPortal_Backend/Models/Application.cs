@@ -1,7 +1,10 @@
-﻿namespace JobPortal_Backend.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace JobPortal_Backend.Models
 {
     public class Application
     {
+        [Key]
         public int ApplicationId { get; set; }
 
         public int JobId { get; set; }

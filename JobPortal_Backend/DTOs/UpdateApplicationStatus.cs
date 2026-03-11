@@ -1,0 +1,7 @@
+﻿namespace JobPortal_Backend.DTOs
+{
+    public class UpdateApplicationStatusDto
+    {
+        public string Status { get; set; }
+    }
+}
