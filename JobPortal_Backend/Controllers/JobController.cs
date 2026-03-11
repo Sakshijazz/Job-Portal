@@ -66,21 +66,20 @@ namespace JobPortal_Backend.Controllers
             if (id != job.JobId)
                 return BadRequest();
 
-            _context.Entry(job).State = EntityState.Modified;
+            var existingJob = await _context.Jobs.FindAsync(id);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                if (!_context.Jobs.Any(e => e.JobId == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            if (existingJob == null)
+                return NotFound();
 
-            return NoContent();
+            existingJob.JobTitle = job.JobTitle;
+            existingJob.CompanyName = job.CompanyName;
+            existingJob.JobDescription = job.JobDescription;
+            existingJob.Location = job.Location;
+            existingJob.SalaryRange = job.SalaryRange;
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Job updated successfully");
         }
 
         // Delete Job (Admin only)
@@ -96,7 +95,7 @@ namespace JobPortal_Backend.Controllers
             _context.Jobs.Remove(job);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Job deleted successfully");
         }
     }
 }

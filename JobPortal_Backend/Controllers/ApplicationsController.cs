@@ -21,9 +21,22 @@ namespace JobPortal_Backend.Controllers
         }
 
         // Apply for job
+        [Authorize(Roles = "User")]
         [HttpPost("apply")]
         public async Task<IActionResult> ApplyJob(ApplyJobDto dto)
         {
+            // check if job exists
+            var job = await _context.Jobs.FindAsync(dto.JobId);
+            if (job == null)
+                return NotFound("Job not found");
+
+            // check if already applied
+            var existingApplication = await _context.Applications
+                .FirstOrDefaultAsync(a => a.JobId == dto.JobId && a.UserId == dto.UserId);
+
+            if (existingApplication != null)
+                return BadRequest("You already applied for this job");
+
             var application = new Application
             {
                 JobId = dto.JobId,
@@ -35,7 +48,7 @@ namespace JobPortal_Backend.Controllers
             _context.Applications.Add(application);
             await _context.SaveChangesAsync();
 
-            return Ok(application);
+            return Ok("Application submitted successfully");
         }
 
         // View applications of logged user
@@ -61,6 +74,20 @@ namespace JobPortal_Backend.Controllers
 
                 .Include(a => a.JobId)
                 .ToListAsync();
+        }
+
+        // Get application by ID
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Application>> GetApplicationById(int id)
+        {
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.ApplicationId == id);
+
+            if (application == null)
+                return NotFound("Application not found");
+
+            return Ok(application);
         }
 
         // Admin: update application status
@@ -93,7 +120,7 @@ namespace JobPortal_Backend.Controllers
             _context.Applications.Remove(application);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Deleted Successfully");
         }
     }
 }
